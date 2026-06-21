@@ -1,7 +1,8 @@
 /******************************************************************************
  * @module SimplifyUI/core/utils/responsiveHelpers
  * @version 1.0.0
- * @author Craig Gent
+ * @author
+ *   Craig Gent
  *
  * @description
  * Internal responsive helpers used by the SimplifyUI responsive engine.
@@ -39,6 +40,38 @@ const PREFIX_BETWEEN = "@between:";
 const KEY_DEFAULT = "default";
 
 /* ============================================================================
+ * Internal helpers
+ * ==========================================================================*/
+
+function isNamedBreakpoint(key: string): key is Breakpoint {
+  return key in defaultBreakpointMap;
+}
+
+function isBetweenKey(key: string): boolean {
+  return key.startsWith(PREFIX_BETWEEN);
+}
+
+function isMaxKey(key: string): boolean {
+  return key.startsWith(PREFIX_MAX);
+}
+
+function isInlineKey(key: string): boolean {
+  if (!key.startsWith(PREFIX_INLINE)) return false;
+  if (isBetweenKey(key)) return false;
+  if (isMaxKey(key)) return false;
+
+  // MUST be numeric only
+  const raw = key.slice(PREFIX_INLINE.length);
+  return /^\d+$/.test(raw);
+}
+
+
+function parseNumberOrNull(raw: string): number | null {
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+/* ============================================================================
  * Breakpoint key detection
  * ==========================================================================*/
 
@@ -57,13 +90,13 @@ const KEY_DEFAULT = "default";
  * @returns `true` if the key matches any supported breakpoint format.
  */
 export function isBreakpointKey(key: string): boolean {
-  return (
-    key in defaultBreakpointMap ||
-    key.startsWith(PREFIX_INLINE) ||
-    key.startsWith(PREFIX_MAX) ||
-    key.startsWith(PREFIX_BETWEEN)
-  );
+  if (isNamedBreakpoint(key)) return true;
+  if (isBetweenKey(key)) return true;
+  if (isMaxKey(key)) return true;
+  if (isInlineKey(key)) return true;
+  return false;
 }
+
 
 /* ============================================================================
  * Inline breakpoint parsing
@@ -82,9 +115,8 @@ export function isBreakpointKey(key: string): boolean {
  * @returns The numeric pixel value, or `null` if not inline.
  */
 export function parseInlineBreakpoint(key: string): number | null {
-  if (!key.startsWith(PREFIX_INLINE)) return null;
-  const px = Number(key.slice(PREFIX_INLINE.length));
-  return Number.isFinite(px) ? px : null;
+  if (!isInlineKey(key)) return null;
+  return parseNumberOrNull(key.slice(PREFIX_INLINE.length));
 }
 
 /* ============================================================================
@@ -98,7 +130,7 @@ export function parseInlineBreakpoint(key: string): number | null {
  *
  * Structural rules:
  * - rectangular branching (no nested conditionals)
- * - named breakpoints resolved via `breakpointMap`
+ * - named breakpoints resolved via `defaultBreakpointMap`
  * - inline, max, and between keys parsed deterministically
  * - unparseable keys resolve to `0`
  *
@@ -106,21 +138,23 @@ export function parseInlineBreakpoint(key: string): number | null {
  * @returns The resolved pixel value.
  */
 export function resolveBreakpointToPx(bp: string): number {
-  if (bp in defaultBreakpointMap) {
-    return defaultBreakpointMap[bp as Breakpoint];
+  if (isNamedBreakpoint(bp)) {
+    return defaultBreakpointMap[bp];
   }
 
-  if (bp.startsWith(PREFIX_INLINE)) {
-    return Number(bp.slice(PREFIX_INLINE.length)) || 0;
-  }
-
-  if (bp.startsWith(PREFIX_MAX)) {
-    return Number(bp.slice(PREFIX_MAX.length)) || 0;
-  }
-
-  if (bp.startsWith(PREFIX_BETWEEN)) {
+  if (isBetweenKey(bp)) {
     const [, min] = bp.split(":");
-    return Number(min) || 0;
+    return parseNumberOrNull(min) ?? 0;
+  }
+
+  if (isMaxKey(bp)) {
+    const raw = bp.slice(PREFIX_MAX.length);
+    return parseNumberOrNull(raw) ?? 0;
+  }
+
+  if (isInlineKey(bp)) {
+    const raw = bp.slice(PREFIX_INLINE.length);
+    return parseNumberOrNull(raw) ?? 0;
   }
 
   return 0;
@@ -192,7 +226,7 @@ export function extractNamedEntries<T>(
 export function extractDynamicKeys(raw: Record<string, unknown>): string[] {
   return Object.keys(raw).filter((key) => {
     if (key === KEY_DEFAULT) return false;
-    if (breakpoints.includes(key as Breakpoint)) return false;
+    if (isNamedBreakpoint(key)) return false;
     return isBreakpointKey(key);
   });
 }
@@ -205,6 +239,7 @@ export function extractDynamicKeys(raw: Record<string, unknown>): string[] {
  * Structural rules:
  * - sorted by resolved px value
  * - stable deterministic ordering
+ * - does not mutate the input keys array
  *
  * @param raw The responsive value map.
  * @param keys The dynamic breakpoint keys.
@@ -214,7 +249,7 @@ export function expandDynamicEntries<T>(
   raw: Record<string, unknown>,
   keys: string[],
 ): Array<{ breakpoint: AnyBreakpoint; value: T }> {
-  const sorted = keys.sort(
+  const sorted = [...keys].sort(
     (a, b) => resolveBreakpointToPx(a) - resolveBreakpointToPx(b),
   );
 

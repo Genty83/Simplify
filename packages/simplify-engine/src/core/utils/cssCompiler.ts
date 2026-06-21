@@ -1,5 +1,5 @@
 /******************************************************************************
- * @module simplify-engine/src/core/compiler/ruleToCSS
+ * @module simplify-engine/src/core/compiler/cssCompiler
  * @version 1.0.0
  * @author
  *   SimplifyUI Engineering — Craig Gent
