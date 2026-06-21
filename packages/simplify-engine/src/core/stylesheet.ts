@@ -384,3 +384,11 @@ export function wrapInLayer(classNames: string, layer: string) {
 
   return classNames;
 }
+
+// ============================================================================
+// TEST-ONLY EXPORTS
+// ============================================================================
+export const __TESTING__ = {
+  RULES,
+  buildStylesheet,
+};
