@@ -152,3 +152,16 @@ export interface SuiTokens {
   typography: SuiTypographyTokens;
   interaction: SuiInteractionTokens;
 }
+
+/**
+ * @description
+ * Deeply‑partial token override type used by `setTokens()`.
+ *
+ * This allows nested partial updates while preserving strict typing
+ * for the full SuiTokens contract.
+ */
+export type SuiTokenOverrides = {
+  [K in keyof SuiTokens]?: {
+    [P in keyof SuiTokens[K]]?: Partial<SuiTokens[K][P]>;
+  };
+};

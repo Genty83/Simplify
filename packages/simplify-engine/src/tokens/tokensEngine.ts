@@ -18,7 +18,7 @@
  */
 
 import { tokens as defaultTokens } from "./tokens";
-import type { SuiTokens } from "./types";
+import type { SuiTokens, SuiTokenOverrides } from "./types";
 
 /* ============================================================================
  * Internal State
@@ -50,9 +50,7 @@ function isObject<T>(value: T): value is T & object {
  * Otherwise, the new value overwrites the old one.
  */
 function mergeValue<T>(current: T, next: T): T {
-  return isObject(current) && isObject(next)
-    ? deepMerge(current, next)
-    : next;
+  return isObject(current) && isObject(next) ? deepMerge(current, next) : next;
 }
 
 /**
@@ -71,15 +69,22 @@ function mergeValue<T>(current: T, next: T): T {
  *
  * @returns A new object containing merged values.
  */
-function deepMerge<T extends object>(target: T, source: Partial<T>): T {
+function deepMerge<T extends object, U extends object>(
+  target: T,
+  source: U,
+): T {
   const result = { ...target };
 
-  for (const key of Object.keys(source) as Array<keyof T>) {
+  for (const key of Object.keys(source) as Array<keyof T & keyof U>) {
     const next = source[key];
     if (next === undefined) continue;
 
     const current = result[key];
-    result[key] = mergeValue(current, next);
+
+    result[key] =
+      isObject(current) && isObject(next)
+        ? deepMerge(current, next)
+        : (next as T[typeof key]);
   }
 
   return result;
@@ -128,7 +133,7 @@ export function getTokens(): SuiTokens {
  *
  * @returns void
  */
-export function setTokens(partial: Partial<SuiTokens>): void {
+export function setTokens(partial: Partial<SuiTokenOverrides>): void {
   activeTokens = deepMerge(activeTokens, partial);
 }
 
