@@ -113,10 +113,24 @@ paint.with = (options: PaintOptions) => {
  * @returns `true` if the value is a PaintValue.
  */
 export function isPaint(value: unknown): value is PaintValue {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !("__paint" in value) ||
+    (value as any).__paint !== true ||
+    !("token" in value)
+  ) {
+    return false;
+  }
+
+  const token = (value as any).token;
+
   return (
-    typeof value === "object" &&
-    value !== null &&
-    "__paint" in value &&
-    (value as Record<string, unknown>).__paint === true
+    typeof token === "object" &&
+    token !== null &&
+    "light" in token &&
+    "dark" in token &&
+    "highContrast" in token
   );
 }
+
