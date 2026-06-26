@@ -13,4 +13,4 @@
 export { createUtility } from "./createUtility";
 export { createSuiUtility } from "./createSuiUtility";
 
-export { registerUtility } from "./utilityRegistry";
+export { registerUtility, getRegisteredUtilities } from "./utilityRegistry";
