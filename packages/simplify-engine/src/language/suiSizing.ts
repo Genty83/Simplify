@@ -45,7 +45,7 @@
  */
 
 import type * as CSS from "csstype";
-import type { SuiValue, Breakpoint, InlineBreakpoint } from "../types";
+import type { SuiValue, Breakpoint, InlineBreakpoint, StateKey } from "../types";
 import { registerUtility, createSuiUtility } from "../utilities";
 
 /* ============================================================================
@@ -122,6 +122,7 @@ export interface SuiSizingProps {
   // Meta
   //
   usingBreakpoints?: Array<Breakpoint | InlineBreakpoint>;
+  usingStates?: StateKey[];
 }
 
 /* ============================================================================
