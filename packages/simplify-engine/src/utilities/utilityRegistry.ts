@@ -46,7 +46,7 @@ import type { RegisteredUtilities, UtilityFactory } from "../types";
  */
 const utilityRegistry = new Map<
   keyof RegisteredUtilities,
-  UtilityFactory<RegisteredUtilities[keyof RegisteredUtilities]>
+  UtilityFactory<any>
 >();
 
 // ============================================================================
@@ -83,7 +83,7 @@ const utilityRegistry = new Map<
  */
 export function registerUtility<Name extends keyof RegisteredUtilities>(
   name: Name,
-  factory: UtilityFactory<RegisteredUtilities[Name]>,
+  factory: UtilityFactory<RegisteredUtilities[Name]>
 ): void {
   utilityRegistry.set(name, factory);
 }
@@ -122,7 +122,7 @@ export function registerUtility<Name extends keyof RegisteredUtilities>(
  */
 export function getRegisteredUtilities(): ReadonlyMap<
   keyof RegisteredUtilities,
-  UtilityFactory<RegisteredUtilities[keyof RegisteredUtilities]>
+  UtilityFactory<any>
 > {
   return utilityRegistry;
 }

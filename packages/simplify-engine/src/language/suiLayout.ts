@@ -173,13 +173,3 @@ export const suiLayout = createSuiUtility<SuiLayoutProps>("layout", layoutMap);
  * ==========================================================================*/
 
 registerUtility("layout", suiLayout);
-
-/**
- * @description
- * Module augmentation so `suiSheet()` recognizes `layout` as a valid utility.
- */
-declare module "../types/index" {
-  interface RegisteredUtilities {
-    layout: SuiLayoutProps;
-  }
-}

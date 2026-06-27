@@ -126,13 +126,3 @@ export const suiShape = createSuiUtility<SuiShapeProps>("shape");
  * ==========================================================================*/
 
 registerUtility("shape", suiShape);
-
-/**
- * @description
- * Module augmentation so `suiSheet()` recognizes `shape` as a valid utility.
- */
-declare module "../types" {
-  interface RegisteredUtilities {
-    shape: SuiShapeProps;
-  }
-}

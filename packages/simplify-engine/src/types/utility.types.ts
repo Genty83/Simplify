@@ -25,6 +25,17 @@ import type { AnyBreakpoint } from "./breakpoints.types";
 import type { AnyContainerBreakpoint, ContainerSizeMap } from "./container.types";
 import type { StateKey } from "./states.types";
 
+import type { 
+  SuiLayoutProps,
+  SuiShapeProps,
+  SuiSurfaceProps,
+  SuiSizingProps,
+  SuiMotionProps,
+  SuiInteractionProps,
+  SuiTypographyProps,
+  SuiSpacingProps 
+} from "../language";
+
 // ============================================================================
 // Utility Configuration
 // ============================================================================
@@ -74,7 +85,14 @@ export interface UtilityResult {
  * This interface is augmented by each language module via declaration merging.
  */
 export interface RegisteredUtilities {
-  [key: string]: unknown;
+  layout: SuiLayoutProps,
+  motion: SuiMotionProps,
+  sizing: SuiSizingProps,
+  shape: SuiShapeProps,
+  spacing: SuiShapeProps,
+  surface: SuiSurfaceProps,
+  interaction: SuiInteractionProps,
+  typography: SuiTypographyProps
 }
 
 // ============================================================================

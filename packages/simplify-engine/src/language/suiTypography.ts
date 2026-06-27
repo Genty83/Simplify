@@ -134,13 +134,3 @@ export const suiTypography = createSuiUtility<SuiTypographyProps>("typography");
  * ==========================================================================*/
 
 registerUtility("typography", suiTypography);
-
-/**
- * @description
- * Module augmentation so `suiSheet()` recognizes `typography` as a valid utility.
- */
-declare module "../types" {
-  interface RegisteredUtilities {
-    typography: SuiTypographyProps;
-  }
-}

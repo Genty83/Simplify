@@ -152,13 +152,3 @@ export const suiSizing = createSuiUtility<SuiSizingProps>("sizing");
  * ==========================================================================*/
 
 registerUtility("sizing", suiSizing);
-
-/**
- * @description
- * Module augmentation so `suiSheet()` recognizes `sizing` as a valid utility.
- */
-declare module "../types" {
-  interface RegisteredUtilities {
-    sizing: SuiSizingProps;
-  }
-}

@@ -167,13 +167,3 @@ export const suiSurface = createSuiUtility<SuiSurfaceProps>("surface");
  * ==========================================================================*/
 
 registerUtility("surface", suiSurface);
-
-/**
- * @description
- * Module augmentation so `suiSheet()` recognizes `surface` as a valid utility.
- */
-declare module "../types" {
-  interface RegisteredUtilities {
-    surface: SuiSurfaceProps;
-  }
-}

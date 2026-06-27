@@ -118,13 +118,3 @@ export const suiInteraction =
 
 /** Registers the interaction utility in the global utility registry. */
 registerUtility("interaction", suiInteraction);
-
-/**
- * @description
- * Module augmentation so `suiSheet()` recognizes `interaction` as a valid utility.
- */
-declare module "../types" {
-  interface RegisteredUtilities {
-    interaction: SuiInteractionProps;
-  }
-}

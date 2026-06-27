@@ -93,13 +93,3 @@ export const suiSpacing = createSuiUtility<SuiSpacingProps>("spacing");
  * ==========================================================================*/
 
 registerUtility("spacing", suiSpacing);
-
-/**
- * @description
- * Module augmentation so `suiSheet()` recognizes `spacing` as a valid utility.
- */
-declare module "../types" {
-  interface RegisteredUtilities {
-    spacing: SuiSpacingProps;
-  }
-}

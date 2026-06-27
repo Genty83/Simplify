@@ -108,8 +108,3 @@ export const suiMotion = createSuiUtility<SuiMotionProps>("motion");
 
 registerUtility("motion", suiMotion);
 
-declare module "../types" {
-  interface RegisteredUtilities {
-    motion: SuiMotionProps;
-  }
-}
