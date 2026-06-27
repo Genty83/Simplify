@@ -56,7 +56,8 @@ export {
   isRawStateObject,
   expandStateObject,
   expandStateValue,
-  autoStates
+  autoStates,
+  tupleToStates
 } from "./states";
 
 //
