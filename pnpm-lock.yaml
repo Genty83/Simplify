@@ -49,6 +49,9 @@ importers:
 
   packages/simplify-playground:
     dependencies:
+      '@simplify/engine':
+        specifier: workspace:*
+        version: link:../simplify-engine
       react:
         specifier: ^19.2.7
         version: 19.2.7
