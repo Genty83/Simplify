@@ -136,3 +136,9 @@ export {
   type SuiSheetReturn,
   type SheetInput,
 } from "./sheet.types";
+
+// ---------------------------------------------------------------------------
+// Registry
+// ---------------------------------------------------------------------------
+
+export { type RuleRegistry } from "./registry.types";

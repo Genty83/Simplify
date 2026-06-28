@@ -88,8 +88,6 @@ export interface ResponsiveWrapper<T> {
 // SuiValue — Unified Semantic Value Type
 // ============================================================================
 
-
-
 /**
  * @description
  * Any value accepted by the Simplify engine:

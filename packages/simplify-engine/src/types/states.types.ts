@@ -121,7 +121,7 @@ export type StateLeaf<T> =
  * - Keys are restricted to `StateKey`.
  */
 export type StateObject<T> = {
-  [K in StateKey]?: StateLeaf<T> | StateObject<T>;
+  [K in StateKey]?: StateLeaf<T>;
 };
 
 // ============================================================================
