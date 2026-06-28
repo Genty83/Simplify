@@ -1,6 +1,6 @@
 /**
  * @module simplify-engine/src/core
- * @version 1.0.1
+ * @version 1.0.2
  *
  * @description
  * Public entrypoint for the SimplifyUI core engine.
@@ -39,6 +39,9 @@ export {
   hashCanonicalRule
 } from "./hashing";
 
+/**
+ * Atomic rule registry (NOT the stylesheet registry)
+ */
 export {
   hasRule,
   registerRule,
@@ -50,6 +53,14 @@ export {
   hasCanonicalRule,
 } from "./registry";
 
+/**
+ * Runtime stylesheet engine (public API only)
+ * These functions internally use:
+ * - stylesheetRegistry.ts
+ * - stylesheetEmitter.ts
+ * - selectorState.ts
+ * - atRuleSorting.ts
+ */
 export {
   getStyleTag,
   injectCSS,
@@ -79,5 +90,4 @@ export {
 } from "./utils";
 
 export { sui } from "./sui";
-
 export { suiSheet } from "./suiSheet";

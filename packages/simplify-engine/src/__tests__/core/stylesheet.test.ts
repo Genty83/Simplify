@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+// Force DOM‑free mode
 vi.mock("../../core/stylesheet", async () => {
   const actual = await vi.importActual<any>("../../core/stylesheet");
   return {
@@ -10,6 +11,7 @@ vi.mock("../../core/stylesheet", async () => {
 
 import * as sheet from "../../core/stylesheet";
 
+// Pull in the testing API exposed by stylesheet.ts
 const testing = (sheet as any).__TESTING__ as {
   RULES: Record<string, any>;
   buildStylesheet: (reg: Record<string, any>) => string;
@@ -65,11 +67,13 @@ describe("runtime stylesheet engine (DOM-free)", () => {
       const css = build();
 
       const order = [
-        css.indexOf(".a"),
-        css.indexOf("(min-width: 100px)"),
-        css.indexOf("(min-width: 200px)"),
-        css.indexOf("@container"),
+        css.indexOf(".a"), // base
+        css.indexOf("@container"), // container first
+        css.indexOf("(min-width: 100px)"), // then media 100px
+        css.indexOf("(min-width: 200px)"), // then media 200px
       ];
+
+      expect(order).toEqual([...order].sort((a, b) => a - b));
 
       expect(order).toEqual([...order].sort((a, b) => a - b));
     });
@@ -80,7 +84,7 @@ describe("runtime stylesheet engine (DOM-free)", () => {
    * ======================================================================= */
 
   describe("wrapInLayer()", () => {
-    it("re-registers rules under a new layer but does not emit a layer wrapper for base-only rules", () =>  {
+    it("re-registers rules under a new layer but does not emit a layer wrapper for base-only rules", () => {
       sheet.injectCSS(".a { color:red }");
 
       sheet.wrapInLayer(".a", "theme");

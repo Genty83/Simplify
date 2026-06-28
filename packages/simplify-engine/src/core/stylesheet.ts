@@ -90,11 +90,18 @@ function parseMedia(rule: string) {
   const open = head.indexOf("(");
   const close = head.indexOf(")");
 
-  return {
-    cond: head.slice(open + 1, close).trim(),
-    inner,
-  };
+  // Extract the raw condition inside parentheses
+  const raw = head.slice(open + 1, close).trim();
+
+  // Remove surrounding parentheses if present
+  const cond =
+    raw.startsWith("(") && raw.endsWith(")")
+      ? raw.slice(1, -1).trim()
+      : raw;
+
+  return { cond, inner };
 }
+
 
 function classify(rule: string): "base" | "media" | "container" {
   const trimmed = rule.trim();
@@ -223,4 +230,7 @@ export const __TESTING__ = {
   parseBlock,
   parseMedia,
   classify,
+  buildStylesheet,
+  RULES,
 };
+
