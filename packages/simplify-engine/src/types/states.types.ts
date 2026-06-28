@@ -36,6 +36,7 @@ import type {
   PrimitiveValue,
   ResponsivePrimitive,
   ResponsiveWrapper,
+  SuiValue
 } from "./primitive.types";
 
 // ============================================================================
@@ -95,10 +96,8 @@ export type StateKey =
  * - No `unknown` variants are included to preserve inference.
  * - This type is intentionally narrow and inference‑friendly.
  */
-export type StateLeaf<T> =
-  | PrimitiveValue<T>
-  | ResponsivePrimitive<T>
-  | ResponsiveWrapper<T>;
+export type StateLeaf<T> = SuiValue<T>;
+
 
 // ============================================================================
 // RECURSIVE STATE OBJECT
@@ -139,7 +138,8 @@ export type StateObject<T> = {
  * const v1: StateValue<string> = "red";
  * const v2: StateValue<string> = { hover: "blue" };
  */
-export type StateValue<T> = StateLeaf<T> | StateObject<T>;
+export type StateValue<T> = StateLeaf<SuiValue<T>> | StateObject<SuiValue<T>>;
+
 
 // ============================================================================
 // STATE WRAPPER

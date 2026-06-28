@@ -100,4 +100,4 @@ export type SuiValue<T> =
   | PrimitiveValue<T>
   | ResponsivePrimitive<T>
   | ResponsiveWrapper<T>
-  | StateWrapper<T>;
+  | StateWrapper<any>;
