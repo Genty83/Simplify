@@ -1,29 +1,30 @@
 /******************************************************************************
  * @module simplify-engine/src/core/utils/stylesheetEmitter
- * @version 1.0.0
- * @author Craig
+ * @version 1.1.0
+ * @author
+ *   SimplifyUI Engineering — Craig Gent
  *
  * @description
  * Pure CSS emission utilities for the Simplify runtime stylesheet engine.
  *
  * Responsibilities:
- * - format selector/declaration blocks
- * - format at‑rule wrappers
- * - emit grouped selector blocks
- * - build the final stylesheet string from a registry
+ * - Format selector/declaration blocks
+ * - Format at‑rule wrappers
+ * - Emit grouped selector blocks
+ * - Build the final stylesheet string from a registry
  *
  * Non‑Responsibilities:
- * - parsing CSS
- * - interacting with the DOM
- * - resolving selector states
- * - sorting selectors or at‑rules
- * - managing the rule registry
+ * - Parsing CSS
+ * - Interacting with the DOM
+ * - Resolving selector states
+ * - Sorting selectors or at‑rules
+ * - Managing the rule registry
  *
  * Design Principles:
- * - pure and deterministic
- * - rectangular branching (no inference)
- * - stable, predictable output
- * - safe for SSR, workers, and edge runtimes
+ * - Pure and deterministic
+ * - Rectangular branching (no inference)
+ * - Stable, predictable output
+ * - Safe for SSR, workers, and edge runtimes
  ******************************************************************************/
 
 import type { RuleRegistry } from "../../types";
@@ -44,8 +45,8 @@ const INDENT = "  ";
  * Emits a single CSS selector/declaration block.
  *
  * Structural rules:
- * - indentation is controlled by caller
- * - no inference or formatting beyond fixed structure
+ * - Indentation is controlled by caller
+ * - No inference or formatting beyond fixed structure
  *
  * @param selector The CSS selector.
  * @param body The declaration body.
@@ -70,9 +71,9 @@ export function emitRule(
  * Emits the opening line for an at‑rule block.
  *
  * Structural rules:
- * - base at‑rules emit nothing
- * - container queries use their raw head
- * - media queries wrap the condition in @media (...)
+ * - Base at‑rules emit nothing
+ * - Container queries use their raw head
+ * - Media queries wrap the condition in @media (...)
  *
  * @param atRule The at‑rule key.
  * @returns The formatted opening line or an empty string.
@@ -92,7 +93,7 @@ export function emitAtRuleOpen(atRule: string): string {
  * Emits the closing brace for an at‑rule block.
  *
  * Structural rules:
- * - base at‑rules emit nothing
+ * - Base at‑rules emit nothing
  *
  * @param atRule The at‑rule key.
  * @returns A closing brace or an empty string.
@@ -111,8 +112,8 @@ export function emitAtRuleClose(atRule: string): string {
  * Emits all selector rules for a given at‑rule/layer group.
  *
  * Structural rules:
- * - indentation depends on layer + at‑rule
- * - selectors are sorted externally via compareSelectors()
+ * - Indentation depends on layer + at‑rule
+ * - Selectors are sorted externally via compareSelectors()
  *
  * @param selectors A map of selector → declaration body.
  * @param isBaseLayer Whether this is the base layer.
@@ -146,10 +147,10 @@ export function emitSelectorGroup(
  * Builds the final stylesheet string from the rule registry.
  *
  * Structural rules:
- * - layers sorted lexicographically
- * - at‑rules sorted via compareAtRules()
- * - selectors sorted via compareSelectors()
- * - no inference or mutation of registry
+ * - Layers sorted lexicographically
+ * - At‑rules sorted via compareAtRules()
+ * - Selectors sorted via compareSelectors()
+ * - No inference or mutation of registry
  *
  * @param registry The rule registry grouped by layer and at‑rule.
  * @returns A fully formatted CSS stylesheet string.

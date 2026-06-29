@@ -1,6 +1,6 @@
 /******************************************************************************
  * @module simplify-engine/src/core/compiler/cssCompiler
- * @version 1.0.0
+ * @version 2.0.0
  * @author
  *   SimplifyUI Engineering — Craig Gent
  *
@@ -8,22 +8,22 @@
  * Converts normalized atomic rules into final CSS rule strings.
  *
  * Responsibilities:
- * - build final selectors (base + optional state)
- * - convert property names to kebab-case
- * - emit declaration blocks
- * - wrap rules in container or media queries
+ * - Build final selectors (hashed classname or selector override + optional state)
+ * - Convert property names to kebab-case
+ * - Emit declaration blocks
+ * - Wrap rules in container or media queries
  *
  * Non‑Responsibilities:
- * - generating atomic rules
- * - managing the registry
- * - interacting with the DOM
+ * - Generating atomic rules
+ * - Managing the registry
+ * - Interacting with the DOM
  *
  * Design Principles:
- * - pure and deterministic
- * - rectangular branching (no inference)
- * - pipeline‑based selector and wrapper resolution
- * - safe for SSR, workers, and edge runtimes
- ***************************************************************************** */
+ * - Pure and deterministic
+ * - Rectangular branching (no inference)
+ * - Pipeline‑based selector and wrapper resolution
+ * - Safe for SSR, workers, and edge runtimes
+ ******************************************************************************/
 
 import type { AtomicRule } from "../../types";
 import { toKebab } from "./strings";
@@ -73,18 +73,18 @@ function throwInvalidRuleField(field: string, value: unknown): never {
  * Ensures that an atomic rule value is a primitive CSS value.
  *
  * Responsibilities:
- * - accept only `string` or `number`
- * - reject structural wrapper objects (responsive, stateful, container, etc.)
- * - provide deterministic error messages for debugging compiler stages
+ * - Accept only `string` or `number`
+ * - Reject structural wrapper objects (responsive, stateful, container, etc.)
+ * - Provide deterministic error messages for debugging compiler stages
  *
  * Non‑Responsibilities:
- * - expanding wrapper objects
- * - performing type coercion
- * - mutating the incoming rule
+ * - Expanding wrapper objects
+ * - Performing type coercion
+ * - Mutating the incoming rule
  *
  * Structural Rules:
- * - value must be fully resolved before emission
- * - wrapper objects must never reach this stage
+ * - Value must be fully resolved before emission
+ * - Wrapper objects must never reach this stage
  *
  * @param value The raw atomic rule value.
  * @returns A stringified primitive CSS value.
@@ -157,6 +157,16 @@ function validateRuleShape(rule: AtomicRule): AtomicRule {
  * @description
  * Converts a normalized atomic rule into a complete CSS rule string.
  *
+ * Responsibilities:
+ * - Build the correct selector (hashed classname OR selector override)
+ * - Emit a stable declaration block
+ * - Wrap the rule in media/container queries when required
+ *
+ * Structural Rules:
+ * - Selector override takes full precedence over hashed classname
+ * - No inference or mutation of rule objects
+ * - Output is deterministic and SSR‑safe
+ *
  * @param rule The atomic rule metadata.
  * @param className The hashed class name (without a leading dot).
  * @returns A fully‑formed CSS rule string.
@@ -165,8 +175,12 @@ export function ruleToCSS(rule: AtomicRule, className: string): string {
   const safeRule = validateRuleShape(rule);
   const safeClassName = validateClassName(className);
 
-  const selector = buildSelector(safeRule, safeClassName);
-  const declaration = `${selector} { ${toKebab(safeRule.property)}: ${stringifyAtomicValue(safeRule.value)}; }`;
+  const override = (safeRule as any).selectorOverride as string | undefined;
+  const selector = override ? override : buildSelector(safeRule, safeClassName);
+
+  const declaration = `${selector} { ${toKebab(
+    safeRule.property,
+  )}: ${stringifyAtomicValue(safeRule.value)}; }`;
 
   const wrapper = resolveWrapper(safeRule);
 
@@ -180,6 +194,10 @@ export function ruleToCSS(rule: AtomicRule, className: string): string {
 /**
  * @function buildSelector
  * @description Builds the final CSS selector for a rule.
+ *
+ * Structural Rules:
+ * - Base selector is always a class selector
+ * - State selector is appended as a suffix when present
  */
 function buildSelector(rule: AtomicRule, className: string): string {
   const base = buildBaseSelector(className);
@@ -252,9 +270,9 @@ function wrapContainerMedia(rule: AtomicRule): string | null {
  * @description
  * Produces a `min-width` media query wrapper.
  *
- * Structural rules:
- * - emits a single‑constraint viewport query
- * - used for lower‑bound breakpoints (e.g., `>= 768px`)
+ * Structural Rules:
+ * - Emits a single‑constraint viewport query
+ * - Used for lower‑bound breakpoints (e.g., `>= 768px`)
  *
  * @param px The minimum viewport width in pixels.
  * @returns A `@media` rule string.
@@ -268,9 +286,9 @@ function buildMinMedia(px: number): string {
  * @description
  * Produces a `max-width` media query wrapper.
  *
- * Structural rules:
- * - emits a single‑constraint viewport query
- * - used for upper‑bound breakpoints (e.g., `<= 1024px`)
+ * Structural Rules:
+ * - Emits a single‑constraint viewport query
+ * - Used for upper‑bound breakpoints (e.g., `<= 1024px`)
  *
  * @param px The maximum viewport width in pixels.
  * @returns A `@media` rule string.
@@ -284,9 +302,9 @@ function buildMaxMedia(px: number): string {
  * @description
  * Produces a `min-width` + `max-width` media query wrapper.
  *
- * Structural rules:
- * - emits a dual‑constraint viewport query
- * - used for bounded ranges (e.g., `768px–1024px`)
+ * Structural Rules:
+ * - Emits a dual‑constraint viewport query
+ * - Used for bounded ranges (e.g., `768px–1024px`)
  *
  * @param min The minimum viewport width in pixels.
  * @param max The maximum viewport width in pixels.

@@ -430,6 +430,7 @@ export function expandConfigToRules(
   containerMode: boolean,
   containerSizes: ContainerSizeMap | null,
   usingContainers: AnyContainerBreakpoint[],
+  selectorOverride?: string,            // ← NEW
 ): AtomicRule[] {
   if (typeof config !== "object" || config === null) throwInvalidConfig();
 
@@ -452,5 +453,13 @@ export function expandConfigToRules(
     );
   }
 
+  // Attach selector override to every rule
+  if (selectorOverride) {
+    for (const rule of rules) {
+      (rule as any).selectorOverride = selectorOverride;
+    }
+  }
+
   return rules;
 }
+

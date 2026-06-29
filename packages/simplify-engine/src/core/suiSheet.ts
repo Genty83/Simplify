@@ -1,33 +1,46 @@
 /******************************************************************************
  * @module simplify-engine/src/core/suiSheet
- * @version 1.1.0
+ * @version 2.2.0
+ * @author
+ *   SimplifyUI Engineering — Craig Gent
  *
  * @description
  * High‑level sheet compiler for SimplifyUI.
  *
  * Responsibilities:
- * - iterate over all registered utilities
- * - provide sheet‑level context (breakpoints, container sizes, container mode)
- * - invoke each utility with its config slice
- * - collect atomic classnames from utility instances
- * - merge all classnames into a single, stable string
- * - expose `.asLayer()` for layer‑scoped stylesheet emission
+ * - Iterate over all registered utilities
+ * - Provide sheet‑level context (breakpoints, container sizes, container mode)
+ * - Invoke each utility with its config slice
+ * - Collect atomic classnames from utility instances
+ * - Merge all classnames into a single, stable string
+ * - Expose `.asLayer()` for layer‑scoped stylesheet emission
+ * - Expand `globals` selector maps into utility tasks targeting real selectors
+ *   via `selectorOverride`
+ *
+ * Global Selector Pipeline:
+ * - `globals` maps selectors → utility configs
+ * - Each selector produces utility tasks with `selectorOverride`
+ * - Utilities pass `__selectorOverride` into `expandConfigToRules`
+ * - Atomic rules receive `selectorOverride`
+ * - Compiler emits rules using override instead of hashed classname
  *
  * Non‑Responsibilities:
- * - generating CSS rules
- * - hashing or registering atomic rules
- * - interacting with the DOM
+ * - Generating CSS rules
+ * - Hashing or registering atomic rules
+ * - Interacting with the DOM
  *
  * Design Principles:
- * - pure and deterministic
- * - rectangular branching (no inference)
- * - utilities are the only source of atomic rule generation
- * - safe for SSR, workers, and edge runtimes
- ***************************************************************************** */
+ * - Pure and deterministic
+ * - Rectangular branching (no inference)
+ * - Utilities are the only source of atomic rule generation
+ * - Safe for SSR, workers, and edge runtimes
+ *****************************************************************************/
 
 import { sui } from "./sui";
 import { wrapInLayer } from "./stylesheet";
 import { getRegisteredUtilities } from "../utilities/utilityRegistry";
+import { containerSizeMap } from "../config";
+
 import type {
   SuiSheetReturn,
   SheetInput,
@@ -35,24 +48,15 @@ import type {
   UtilityFn,
   ContainerSizeMap,
 } from "../types";
-import { containerSizeMap } from "../config";
 
 /* ============================================================================
  * Type Guards
  * ==========================================================================*/
 
-/**
- * @function isRecord
- * @description Determines whether a value is a non‑null object.
- */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/**
- * @function isContainerArray
- * @description Determines whether a value is an array of container breakpoints.
- */
 function isContainerArray(
   value: unknown,
 ): value is readonly AnyContainerBreakpoint[] {
@@ -69,41 +73,19 @@ interface SheetContext {
   containerMode: boolean;
 }
 
-/**
- * @function extractBreakpoints
- * @description
- * Extracts the viewport breakpoints array from the sheet config.
- *
- * Structural rules:
- * - always returns an array
- * - always returns a shallow copy
- */
 function extractBreakpoints(config: SheetInput): string[] {
   const list = config.usingBreakpoints;
   return Array.isArray(list) && list.length ? [...list] : [];
 }
 
-/**
- * @function extractContainerSizes
- * @description Extracts container sizes from the sheet config.
- */
 function extractContainerSizes(config: SheetInput): ContainerSizeMap {
   return config.containerSizes ?? containerSizeMap;
 }
 
-/**
- * @function extractContainerMode
- * @description Determines whether this sheet is being rendered inside a container context.
- */
 function extractContainerMode(config: SheetInput): boolean {
   return Boolean(config.isContainerChild);
 }
 
-/**
- * @function buildSheetContext
- * @description
- * Builds the sheet‑level context object used by all utilities.
- */
 function buildSheetContext(config: SheetInput): SheetContext {
   return {
     usingBreakpoints: extractBreakpoints(config),
@@ -120,15 +102,9 @@ interface UtilityTask {
   fn: UtilityFn;
   config: Record<string, unknown>;
   usingContainers: AnyContainerBreakpoint[];
+  selectorOverride?: string;
 }
 
-/**
- * @function getUtilityConfig
- * @description
- * Safely extracts the config object for a specific utility.
- *
- * Returns `null` if the sheet does not define that utility.
- */
 function getUtilityConfig(
   sheet: SheetInput,
   utilName: PropertyKey,
@@ -137,22 +113,16 @@ function getUtilityConfig(
   return isRecord(raw) ? raw : null;
 }
 
-/**
- * @function extractUsingContainers
- * @description
- * Extracts and normalizes the `usingContainers` array for a utility.
- */
 function extractUsingContainers(
   utilConfig: Record<string, unknown>,
 ): AnyContainerBreakpoint[] {
-  const raw = utilConfig.usingContainers;
+  const raw = (utilConfig as Record<string, unknown>).usingContainers;
   return isContainerArray(raw) ? [...raw] : [];
 }
 
 /**
- * @function buildUtilityTasks
  * @description
- * Builds a list of utility invocation tasks based on the sheet config.
+ * Component‑scoped utilities (layout, surface, etc.)
  */
 function buildUtilityTasks(sheet: SheetInput): UtilityTask[] {
   const tasks: UtilityTask[] = [];
@@ -165,7 +135,49 @@ function buildUtilityTasks(sheet: SheetInput): UtilityTask[] {
       fn: utilFn,
       config: utilConfig,
       usingContainers: extractUsingContainers(utilConfig),
+      selectorOverride: undefined,
     });
+  }
+
+  return tasks;
+}
+
+/**
+ * @description
+ * Global utilities — selector → utility config
+ *
+ * Example:
+ * globals: {
+ *   body: { layout: { padding: 20 } }
+ * }
+ *
+ * Produces tasks with:
+ *   selectorOverride = "body"
+ */
+function buildGlobalTasks(sheet: SheetInput): UtilityTask[] {
+  const tasks: UtilityTask[] = [];
+  const globals = sheet.globals;
+  if (!globals) return tasks;
+
+  for (const selector of Object.keys(globals)) {
+    const selectorConfig = globals[selector];
+    if (!selectorConfig || !isRecord(selectorConfig)) continue;
+
+    for (const [utilName, utilFn] of getRegisteredUtilities()) {
+      const utilConfig = (selectorConfig as Record<PropertyKey, unknown>)[
+        utilName
+      ];
+      if (!isRecord(utilConfig)) continue;
+
+      const config = utilConfig as Record<string, unknown>;
+
+      tasks.push({
+        fn: utilFn,
+        config,
+        usingContainers: extractUsingContainers(config),
+        selectorOverride: selector,
+      });
+    }
   }
 
   return tasks;
@@ -176,11 +188,12 @@ function buildUtilityTasks(sheet: SheetInput): UtilityTask[] {
  * ==========================================================================*/
 
 /**
- * @function runUtility
  * @description
- * Invokes a registered utility with the correct sheet‑level context.
+ * Invokes a utility with sheet‑level context.
  *
- * Returns the atomic classname produced by the utility.
+ * For global tasks:
+ * - `selectorOverride` is passed through
+ * - atomic rules target real selectors instead of hashed classnames
  */
 function runUtility(
   utilFn: UtilityFn,
@@ -189,6 +202,7 @@ function runUtility(
   usingContainers: AnyContainerBreakpoint[],
   containerMode: boolean,
   containerSizes: ContainerSizeMap,
+  selectorOverride?: string,
 ): string {
   const instance = utilFn({
     ...utilConfig,
@@ -196,16 +210,12 @@ function runUtility(
     usingContainers,
     __containerMode: containerMode,
     __containerSizes: containerSizes,
+    __selectorOverride: selectorOverride,
   });
 
   return instance.atomize();
 }
 
-/**
- * @function runUtilityTasks
- * @description
- * Executes all utility tasks and collects their resulting classnames.
- */
 function runUtilityTasks(
   tasks: UtilityTask[],
   context: SheetContext,
@@ -220,6 +230,7 @@ function runUtilityTasks(
       task.usingContainers,
       context.containerMode,
       context.containerSizes,
+      task.selectorOverride,
     );
 
     if (className) out.push(className);
@@ -232,52 +243,10 @@ function runUtilityTasks(
  * Classname Merging + Layer API
  * ==========================================================================*/
 
-/**
- * @function mergeClassnames
- * @description Merges all utility‑generated classnames into a single string.
- */
 function mergeClassnames(classes: string[]): string {
   return sui(...classes);
 }
 
-/**
- * @function attachLayerAPI
- * @description
- * Wraps a merged classname string in a string-like object that exposes
- * a non-enumerable `.asLayer()` method for CSS layer emission.
- *
- * This allows the return value of `suiSheet()` to behave like a string
- * in JSX while still supporting side-effectful layer registration.
- *
- * - The returned value is a `String` object (not a primitive string)
- * - It coerces to its primitive string value in most string contexts:
- *   - JSX className usage
- *   - template literals
- *   - string concatenation
- *
- * - It exposes `.asLayer(name)`:
- *   - Registers the classname under a CSS layer via `wrapInLayer`
- *   - Does NOT modify the underlying classname
- *   - Returns the primitive classname string
- *
- * - `.asLayer` is defined as:
- *   - non-enumerable
- *   - non-writable
- *   - non-configurable
- *
- * - This is a wrapper object, not a primitive string.
- * - Strict equality with primitives will fail:
- *   `sheet === "text"` → false
- * - Loose equality will coerce:
- *   `sheet == "text"` → true (due to valueOf coercion)
- *
- * - This design is intentional to preserve:
- *   - JSX ergonomics (`className={sheet}`)
- *   - API extension (`sheet.asLayer()`)
- *
- * @param base - The merged classname string produced by the sheet compiler.
- * @returns A string-like object with `.asLayer()` capability.
- */
 function attachLayerAPI(base: string): SuiSheetReturn {
   const out = new String(base) as SuiSheetReturn;
 
@@ -298,22 +267,19 @@ function attachLayerAPI(base: string): SuiSheetReturn {
  * Main API
  * ==========================================================================*/
 
-/**
- * @function suiSheet
- * @description
- * Builds a high‑level sheet instance from a declarative config object.
- *
- * Pipeline:
- * 1. Extract sheet‑level context
- * 2. Build utility invocation tasks
- * 3. Execute tasks to collect classnames
- * 4. Merge classnames and expose `.asLayer()`
- */
 export function suiSheet(config: SheetInput): SuiSheetReturn {
   const context = buildSheetContext(config);
-  const tasks = buildUtilityTasks(config);
-  const classes = runUtilityTasks(tasks, context);
 
+  const componentTasks = buildUtilityTasks(config);
+  const globalTasks = buildGlobalTasks(config);
+
+  const tasks =
+    componentTasks.length || globalTasks.length
+      ? [...componentTasks, ...globalTasks]
+      : [];
+
+  const classes = tasks.length ? runUtilityTasks(tasks, context) : [];
   const base = mergeClassnames(classes);
+
   return attachLayerAPI(base);
 }

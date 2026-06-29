@@ -26,6 +26,8 @@
 import type { Breakpoint, InlineBreakpoint } from "./breakpoints.types";
 import type { ContainerSizeMap } from "./container.types";
 import type { RegisteredUtilities } from "./utility.types";
+import type { GlobalsUtility } from "./globals.types";
+
 
 // ============================================================================
 // Sheet Input
@@ -45,9 +47,12 @@ export type SheetInput = {
   usingBreakpoints?: Array<Breakpoint | InlineBreakpoint>;
   containerSizes?: ContainerSizeMap;
   isContainerChild?: boolean;
+
+  globals?: GlobalsUtility;
 } & {
   [K in keyof RegisteredUtilities]?: RegisteredUtilities[K];
 };
+
 
 // ============================================================================
 // Sheet Return Type

@@ -1,35 +1,40 @@
 /******************************************************************************
  * SimplifyUI Utility Compiler
  * @module simplify-engine/src/utilities/createUtility
- * @version 1.4.0
+ * @version 2.0.0
+ * @author
+ *   SimplifyUI Engineering — Craig Gent
  *
  * @description
  * High‑level orchestration layer for the SimplifyUI utility compiler.
  *
+ * This module coordinates the full utility compilation pipeline:
+ *
+ * 1. Extract meta‑fields (breakpoints, states, container settings)
+ * 2. Extract selector overrides for global rules
+ * 3. Expand raw config objects into deterministic atomic rule lists
+ * 4. Atomize rules (hashing, dedupe, registry insertion, CSS emission)
+ * 5. Flush the stylesheet after each injection
+ *
  * Responsibilities:
- * - Extract meta‑fields (breakpoints, states, container settings)
- * - Delegate rule expansion to pure helpers in `utils.ts`
- * - Atomize expanded rules (hashing, dedupe, registry, CSS emission)
- * - Trigger stylesheet flush after injection
- *
- * Non‑Responsibilities:
- * - Performing property expansion
- * - Resolving responsive or stateful values
- * - Generating container conditions
- * - Mutating config objects
- * - Interacting with browser APIs (SSR‑safe)
- *
- * Structural Rules:
- * - Pure orchestration, no expansion logic
+ * - Pure orchestration (no expansion logic)
  * - Deterministic rule ordering via state sorting
  * - Stable hashing for atomic classnames
- * - Factory → compiler → atomizer pipeline
+ * - Selector override propagation for global sheets
+ * - SSR‑safe at all layers
  *
- * Design Notes:
- * - Small, composposable helpers (<15 lines)
+ * Non‑Responsibilities:
+ * - Performing property expansion (delegated to `utils.ts`)
+ * - Generating CSS strings (delegated to `ruleToCSS`)
+ * - Interacting with the DOM (delegated to stylesheet engine)
+ * - Mutating user config objects
+ *
+ * Design Principles:
+ * - Small, composable helpers (<15 lines)
  * - Zero magic values (all constants extracted)
  * - No branching pyramids (strategy‑map ready)
- ***************************************************************************** */
+ * - Deterministic, rectangular pipelines
+ ******************************************************************************/
 
 import {
   breakpoints,
@@ -40,6 +45,8 @@ import {
   type ContainerSizeMap,
   type AnyContainerBreakpoint,
   type AtomicRule,
+  type UtilityMetaConfig,
+  type ExtractedMeta,
 } from "../types";
 
 import { expandConfigToRules } from "./utils";
@@ -58,22 +65,20 @@ import {
 } from "../core";
 
 import { stateKeys } from "../config";
-import type { ExtractedMeta, UtilityMetaConfig } from "../types";
 
-// ============================================================================
-// Meta Extraction
-// ============================================================================
+/* ============================================================================
+ * Meta Extraction
+ * ==========================================================================*/
 
 /**
  * @function extractRawMeta
- * @version 1.1.0
- *
  * @description
- * Extracts raw meta fields from the incoming config.
+ * Extracts raw meta fields from the incoming config and returns the remaining
+ * CSS properties as `rest`.
  *
- * Responsibilities:
- * - Remove meta keys from the config
- * - Preserve all remaining keys as CSS properties
+ * Structural Rules:
+ * - Meta keys are removed from the config
+ * - Remaining keys are treated as CSS properties
  */
 function extractRawMeta(config: UtilityMetaConfig) {
   const {
@@ -82,6 +87,7 @@ function extractRawMeta(config: UtilityMetaConfig) {
     usingContainers,
     __containerMode,
     __containerSizes,
+    __selectorOverride,
     ...rest
   } = config;
 
@@ -92,15 +98,17 @@ function extractRawMeta(config: UtilityMetaConfig) {
     usingContainers,
     __containerMode,
     __containerSizes,
+    __selectorOverride,
   };
 }
 
 /**
  * @function resolveActiveBreakpoints
- * @version 1.1.0
- *
  * @description
  * Resolves the final list of active breakpoints.
+ *
+ * Structural Rules:
+ * - Defaults to all breakpoints when none are provided
  */
 function resolveActiveBreakpoints(raw: unknown): AnyBreakpoint[] {
   return Array.isArray(raw) && raw.length ? raw : [...breakpoints];
@@ -108,10 +116,11 @@ function resolveActiveBreakpoints(raw: unknown): AnyBreakpoint[] {
 
 /**
  * @function resolveActiveStates
- * @version 1.1.0
- *
  * @description
  * Resolves the final list of active state keys.
+ *
+ * Structural Rules:
+ * - Defaults to all known state keys
  */
 function resolveActiveStates(raw: unknown): StateKey[] {
   return Array.isArray(raw) && raw.length ? raw : stateKeys;
@@ -119,10 +128,11 @@ function resolveActiveStates(raw: unknown): StateKey[] {
 
 /**
  * @function resolveActiveContainers
- * @version 1.1.0
- *
  * @description
  * Resolves the final list of active container breakpoints.
+ *
+ * Structural Rules:
+ * - Defaults to an empty list
  */
 function resolveActiveContainers(raw: unknown): AnyContainerBreakpoint[] {
   return Array.isArray(raw) && raw.length ? raw : [];
@@ -130,8 +140,6 @@ function resolveActiveContainers(raw: unknown): AnyContainerBreakpoint[] {
 
 /**
  * @function resolveContainerSettings
- * @version 1.3.0
- *
  * @description
  * Resolves container mode and container size map.
  *
@@ -164,10 +172,12 @@ function resolveContainerSettings(
 
 /**
  * @function buildExtractedMeta
- * @version 1.1.0
- *
  * @description
  * Assembles the final extracted meta object.
+ *
+ * Structural Rules:
+ * - All fields are explicit
+ * - No inference or mutation
  */
 function buildExtractedMeta(
   rest: UtilityConfig,
@@ -189,14 +199,12 @@ function buildExtractedMeta(
 
 /**
  * @function extractMeta
- * @version 1.3.0
- *
  * @description
  * High‑level meta extractor.
  *
- * Responsibilities:
- * - Delegate extraction to smaller helpers
- * - Produce a deterministic, fully‑resolved meta object
+ * Structural Rules:
+ * - Returns ONLY ExtractedMeta
+ * - Selector override is intentionally excluded and handled separately
  */
 function extractMeta(config: UtilityMetaConfig): ExtractedMeta {
   const raw = extractRawMeta(config);
@@ -220,16 +228,18 @@ function extractMeta(config: UtilityMetaConfig): ExtractedMeta {
   );
 }
 
-// ============================================================================
-// Atomization
-// ============================================================================
+/* ============================================================================
+ * Atomization
+ * ==========================================================================*/
 
 /**
  * @function buildCanonical
- * @version 1.1.0
- *
  * @description
  * Creates a canonical rule descriptor used for deduplication.
+ *
+ * Structural Rules:
+ * - Canonical selector is the real selector (override or hash)
+ * - Canonical hashing is stable and deterministic
  */
 function buildCanonical(rule: {
   selector: string;
@@ -243,19 +253,27 @@ function buildCanonical(rule: {
 
 /**
  * @function emitRule
- * @version 1.2.0
- *
  * @description
  * Emits a single atomic rule into the registry and stylesheet.
+ *
+ * Structural Rules:
+ * - Registry key is always the hashed classname
+ * - CSS selector is override OR hashed classname
+ * - No mutation of rule objects
  */
-function emitRule(hash: string, rule: AtomicRule, canonical: string): void {
+function emitRule(
+  hash: string,
+  rule: AtomicRule,
+  selector: string,
+  canonical: string,
+): void {
   if (hasCanonicalRule(canonical)) return;
 
   if (!hasRule(hash)) {
-    const css = ruleToCSS(rule, hash);
+    const css = ruleToCSS(rule, selector);
 
     registerRule(hash, css, canonical, {
-      selector: hash,
+      selector,
       property: rule.property,
       value: String(rule.value),
       media: rule.breakpoint,
@@ -268,10 +286,12 @@ function emitRule(hash: string, rule: AtomicRule, canonical: string): void {
 
 /**
  * @function atomizeRules
- * @version 1.2.0
- *
  * @description
  * Atomizes a list of rules into classnames and injects CSS.
+ *
+ * Structural Rules:
+ * - Sorted by state priority
+ * - Selector override takes precedence over hashed classname
  */
 function atomizeRules(rules: AtomicRule[]): string {
   const classNames: string[] = [];
@@ -281,8 +301,11 @@ function atomizeRules(rules: AtomicRule[]): string {
     const key = ruleKey(rule);
     const hash = hashRuleKey(key);
 
+    const override = (rule as any).selectorOverride as string | undefined;
+    const selector = override ?? hash;
+
     const canonical = buildCanonical({
-      selector: hash,
+      selector,
       property: rule.property,
       value: String(rule.value),
       media: rule.breakpoint,
@@ -290,32 +313,37 @@ function atomizeRules(rules: AtomicRule[]): string {
     });
 
     classNames.push(hash);
-    emitRule(hash, rule, canonical);
+    emitRule(hash, rule, selector, canonical);
   }
 
   flushStylesheet();
   return classNames.join(" ");
 }
 
-// ============================================================================
-// Compiler + Factory
-// ============================================================================
+/* ============================================================================
+ * Compiler + Factory
+ * ==========================================================================*/
 
 /**
  * @function compileUtility
- * @version 1.0.0
- *
  * @description
  * Performs meta extraction and rule expansion for a single utility call.
  *
- * Responsibilities:
- * - Extract meta fields
- * - Expand config into atomic rules
+ * Structural Rules:
+ * - Selector override is extracted directly from config
+ * - Meta extraction remains unchanged
+ * - Rule expansion is pure and deterministic
+ * - Selector override is attached to each rule
  */
 function compileUtility(
   namespace: string,
   config: UtilityMetaConfig,
 ): AtomicRule[] {
+  const selectorOverride =
+    typeof config.__selectorOverride === "string"
+      ? config.__selectorOverride.trim()
+      : undefined;
+
   const {
     rest,
     activeBreakpoints,
@@ -325,7 +353,7 @@ function compileUtility(
     containerSizes,
   } = extractMeta(config);
 
-  return expandConfigToRules(
+  const rules = expandConfigToRules(
     namespace,
     rest,
     activeBreakpoints,
@@ -333,19 +361,21 @@ function compileUtility(
     containerMode,
     containerSizes,
     activeContainers,
+    selectorOverride,
   );
+
+  return rules;
 }
 
 /**
  * @function createUtility
- * @version 1.4.0
- *
  * @description
  * Creates a namespaced utility compiler.
  *
- * Responsibilities:
- * - Wrap `compileUtility`
- * - Provide an `atomize()` method for CSS emission
+ * Structural Rules:
+ * - Returns a stable utility instance
+ * - `atomize()` performs full CSS emission
+ * - Selector override is fully supported
  */
 export function createUtility(namespace: string) {
   return function utility(config: UtilityMetaConfig): UtilityResult {

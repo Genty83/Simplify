@@ -1,25 +1,26 @@
 /******************************************************************************
  * @module simplify-engine/src/core/utils/atRuleSorting
- * @version 1.0.0
- * @author Craig
+ * @version 2.0.0
+ * @author
+ *   SimplifyUI Engineering — Craig Gent
  *
  * @description
  * Deterministic sorting utilities for CSS at‑rules used by the Simplify
  * runtime stylesheet emitter.
  *
  * Responsibilities:
- * - extract numeric min-width values from at‑rule keys
- * - provide a stable comparator for ordering at‑rules
+ * - Extract numeric min-width values from at‑rule keys
+ * - Provide a stable comparator for ordering at‑rules
  *
  * Non‑Responsibilities:
- * - generating CSS
- * - interacting with the DOM
- * - managing selectors or state priority
+ * - Generating CSS
+ * - Interacting with the DOM
+ * - Managing selectors or state priority
  *
  * Design Principles:
- * - pure and deterministic
- * - rectangular branching (no inference)
- * - safe for SSR, workers, and edge runtimes
+ * - Pure and deterministic
+ * - Rectangular branching (no inference)
+ * - Safe for SSR, workers, and edge runtimes
  ******************************************************************************/
 
 const BASE_AT_RULE = "base";
@@ -35,15 +36,14 @@ const CONTAINER_AT_RULE = "@container";
  * Extracts the numeric min-width value from an at‑rule key.
  *
  * Structural rules:
- * - expects the format "min-width: Npx"
- * - returns MAX_SAFE_INTEGER if no numeric width is found
- * - no inference or fallback beyond this rule
+ * - Expects the format "min-width: Npx"
+ * - Returns MAX_SAFE_INTEGER if no numeric width is found
+ * - No inference or fallback beyond this rule
  *
  * @param atRule The at‑rule key string.
  * @returns The extracted pixel value or MAX_SAFE_INTEGER.
  */
 export function extractMinWidth(atRule: string): number {
-  // Fast path: avoid regex unless necessary
   const idx = atRule.indexOf("min-width:");
   if (idx === -1) return Number.MAX_SAFE_INTEGER;
 
@@ -62,32 +62,47 @@ export function extractMinWidth(atRule: string): number {
  *
  * Ordering rules:
  * 1. "base" always comes first
- * 2. container queries come before media queries
- * 3. media queries are sorted by min-width ascending
+ * 2. Container queries come before media queries
+ * 3. Container queries are sorted lexicographically
+ * 4. Media queries are sorted by min-width ascending
+ * 5. Fallback: lexicographic ordering
  *
  * Structural rules:
- * - no inference beyond explicit prefix checks
- * - stable ordering guarantees predictable stylesheet output
+ * - No inference beyond explicit prefix checks
+ * - Stable ordering guarantees predictable stylesheet output
  *
  * @param a The first at‑rule key.
  * @param b The second at‑rule key.
  * @returns A negative, zero, or positive number for sorting.
  */
 export function compareAtRules(a: string, b: string): number {
+  // 1. Base always first
   if (a === BASE_AT_RULE) return -1;
   if (b === BASE_AT_RULE) return 1;
 
   const aIsContainer = a.startsWith(CONTAINER_AT_RULE);
   const bIsContainer = b.startsWith(CONTAINER_AT_RULE);
 
+  // 2. Container queries before media queries
   if (aIsContainer !== bIsContainer) {
     return aIsContainer ? -1 : 1;
   }
 
+  // 3. Container queries: lexicographic ordering
+  if (aIsContainer && bIsContainer) {
+    return a.localeCompare(b);
+  }
+
+  // 4. Media queries: sort by min-width ascending
   const minA = extractMinWidth(a);
   const minB = extractMinWidth(b);
 
-  return minA - minB;
+  if (minA !== minB) {
+    return minA - minB;
+  }
+
+  // 5. Fallback: lexicographic ordering
+  return a.localeCompare(b);
 }
 
 /* ============================================================================
