@@ -67,17 +67,9 @@ export interface SuiSpacingProps {
   marginBlock?: SuiValue<CSS.Property.MarginBlock>;
   marginBlockStart?: SuiValue<CSS.Property.MarginBlockStart>;
   marginBlockEnd?: SuiValue<CSS.Property.MarginBlockEnd>;
-
-  //
-  // Optional: gap (if you want spacing to own it)
-  //
   gap?: SuiValue<CSS.Property.Gap>;
   rowGap?: SuiValue<CSS.Property.RowGap>;
   columnGap?: SuiValue<CSS.Property.ColumnGap>;
-
-  //
-  // Meta
-  //
   usingBreakpoints?: Array<Breakpoint | InlineBreakpoint>;
   usingStates?: StateKey[];
 }

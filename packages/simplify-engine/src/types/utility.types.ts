@@ -89,7 +89,7 @@ export interface RegisteredUtilities {
   motion: SuiMotionProps,
   sizing: SuiSizingProps,
   shape: SuiShapeProps,
-  spacing: SuiShapeProps,
+  spacing: SuiSpacingProps,
   surface: SuiSurfaceProps,
   interaction: SuiInteractionProps,
   typography: SuiTypographyProps
