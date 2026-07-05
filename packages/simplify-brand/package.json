@@ -1,0 +1,12 @@
+{
+  "name": "@simplify/brand",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "logos",
+    "exports"
+  ],
+  "exports": {
+    ".": "./exports/index.ts"
+  }
+}

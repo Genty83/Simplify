@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 480 480"
+  role="img"
+  aria-label="Simplify Icon"
+>
+
+  <style>
+    :root {
+      --core-r: 60;
+      --core-gradient-start: #2563EB;
+      --core-gradient-end: #1D4ED8;
+
+      --connector-stroke: #6B7280;
+      --connector-width: 4.5;
+      --connector-opacity: 0.85;
+
+      --motion-color: #1D9BF0;
+      --layout-color: #eb25b3;
+      --surface-color: #06B6D4;
+      --typography-color: #312E81;
+      --sizing-color: #2563EB;
+      --spacing-color: #6D28D9;
+      --interaction-color: #4338CA;
+      --shape-color: #1E40AF;
+    }
+  </style>
+
+  <defs>
+    <linearGradient id="coreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="var(--core-gradient-start)" />
+      <stop offset="100%" stop-color="var(--core-gradient-end)" />
+    </linearGradient>
+
+    <filter id="coreShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow
+        dx="0"
+        dy="4"
+        stdDeviation="8"
+        flood-color="#1E3A8A"
+        flood-opacity="0.20"
+      />
+    </filter>
+  </defs>
+
+  <!-- Centered symbol -->
+  <g id="simplify-symbol" transform="translate(0,0)">
+
+    <!-- Connectors -->
+    <g
+      stroke="var(--connector-stroke)"
+      stroke-width="var(--connector-width)"
+      stroke-linecap="round"
+      fill="none"
+      opacity="var(--connector-opacity)"
+      vector-effect="non-scaling-stroke"
+    >
+      <line x1="240" y1="160" x2="240" y2="115" />
+      <line x1="285" y1="178" x2="317" y2="146" />
+      <line x1="304" y1="224" x2="350" y2="224" />
+      <line x1="285" y1="270" x2="317" y2="302" />
+      <line x1="240" y1="288" x2="240" y2="333" />
+      <line x1="195" y1="270" x2="163" y2="302" />
+      <line x1="176" y1="224" x2="130" y2="224" />
+      <line x1="195" y1="178" x2="163" y2="146" />
+    </g>
+
+    <!-- Core -->
+    <circle
+      cx="240"
+      cy="224"
+      r="var(--core-r)"
+      fill="url(#coreGradient)"
+      filter="url(#coreShadow)"
+    />
+
+    <!-- Motion -->
+    <circle cx="240" cy="80" r="24" fill="var(--motion-color)" />
+
+    <!-- Layout -->
+    <circle cx="350" cy="114" r="24" fill="var(--layout-color)" />
+
+    <!-- Surface -->
+    <circle cx="385" cy="224" r="24" fill="var(--surface-color)" />
+
+    <!-- Typography -->
+    <circle cx="350" cy="334" r="24" fill="var(--typography-color)" />
+
+    <!-- Sizing -->
+    <circle cx="240" cy="368" r="24" fill="var(--sizing-color)" />
+
+    <!-- Spacing -->
+    <circle cx="130" cy="334" r="24" fill="var(--spacing-color)" />
+
+    <!-- Interaction -->
+    <circle cx="95" cy="224" r="24" fill="var(--interaction-color)" />
+
+    <!-- Shape -->
+    <circle cx="130" cy="114" r="24" fill="var(--shape-color)" />
+
+  </g>
+
+</svg>
