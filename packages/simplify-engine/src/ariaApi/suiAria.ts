@@ -1,28 +1,35 @@
 /******************************************************************************
- * @module simplify-engine/src/core/suiAria
+ * @module simplify-engine/ariaApi/ariaEngine
  * @version 1.1.1
+ * @author Craig
  *
  * @description
- * Accessibility helpers for SimplifyUI components.
+ * Structural ARIA emission helpers for the Simplify Engine.
  *
- * Responsibilities:
- * - structural ARIA wrapper (`suiAria`)
- * - ergonomic ARIA attribute helpers
- * - boolean ARIA state emission (`ariaState`)
+ * This module provides deterministic, prototype‑free helpers for emitting
+ * WAI‑ARIA roles, attributes, and boolean state mappings. All output is
+ * structural and explicit, with no inference or automatic attribute generation.
  *
- * Non‑Responsibilities:
- * - validating ARIA roles
- * - inferring ARIA attributes automatically
- * - depending on DOM or environment features
+ * @responsibilities
+ * - Emit structural ARIA role + attribute objects (`suiAria`)
+ * - Provide ergonomic ARIA attribute helpers (`ariaLabel`, `ariaHidden`)
+ * - Emit boolean ARIA state attributes using the canonical `ariaStateMap`
  *
- * Design notes:
- * - deterministic, structural output
- * - prototype‑free objects
- * - minimal, explicit attribute emission
- ***************************************************************************** */
+ * @non-responsibilities
+ * - Does not validate ARIA roles
+ * - Does not infer ARIA attributes automatically
+ * - Does not depend on DOM, JSX, or environment features
+ *
+ * @design-principles
+ * - Deterministic structural output
+ * - Prototype‑free objects
+ * - Minimal, explicit attribute emission
+ * - Single source of truth via `ariaStateMap`
+ ******************************************************************************/
 
-import type { Role, AriaAttributes } from "../types"
-import { ariaStateMap } from "../config"
+
+import type { Role, AriaAttributes } from "./types"
+import { ariaStateMap } from "./config"
 
 // ============================================================================
 // MAIN WRAPPER

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { suiAria, ariaLabel, ariaHidden, ariaState } from "../../services";
+import { suiAria, ariaLabel, ariaHidden, ariaState } from "../suiAria";
 
-import { ariaStateMap } from "../../config";
+import { ariaStateMap } from "../config";
 
 // ---------------------------------------------------------------------------
 // Tests

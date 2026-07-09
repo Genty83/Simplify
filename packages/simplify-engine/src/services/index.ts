@@ -67,13 +67,3 @@ export {
   keyframes,
   stepToCSS,
 } from "./keyframes";
-
-//
-// ACCESSIBILITY (ARIA)
-//
-export {
-  suiAria,
-  ariaLabel,
-  ariaHidden,
-  ariaState,
-} from "./suiAria";

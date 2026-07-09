@@ -1,4 +1,5 @@
 export * from "./paintApi"
+export * from "./ariaApi"
 export * from "./config"
 export * from "./core"
 export * from "./language"

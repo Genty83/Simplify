@@ -20,6 +20,7 @@
  ***************************************************************************** */
 
 import type { StateKey, ContainerSizeMap } from "../types"
+import { ariaStateMap } from "../ariaApi"
 
 // ============================================================================
 // BREAKPOINT MAP (Viewport)
@@ -52,29 +53,6 @@ export const containerSizeMap: ContainerSizeMap = {
   medium: "600px",
   large: "900px"
 }
-
-// ============================================================================
-// ARIA STATE MAP (Single Source of Truth)
-// ============================================================================
-
-/**
- * @description
- * Maps internal ARIA state keys to their corresponding ARIA attribute names.
- *
- * Used by:
- * - `ariaState()` helper
- * - state selector generation
- * - rule compilers
- */
-export const ariaStateMap = {
-  ariaExpanded: "aria-expanded",
-  ariaSelected: "aria-selected",
-  ariaChecked: "aria-checked",
-  ariaPressed: "aria-pressed",
-  ariaDisabled: "aria-disabled",
-  ariaCurrent: "aria-current",
-  ariaBusy: "aria-busy"
-} as const
 
 // ============================================================================
 // STATE KEYS

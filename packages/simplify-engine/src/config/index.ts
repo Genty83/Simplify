@@ -34,5 +34,4 @@ export {
   stateKeys,
   stateToSelector,
   statePriority,
-  ariaStateMap
 } from "./config";
