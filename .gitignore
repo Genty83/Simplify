@@ -42,3 +42,6 @@ Thumbs.db
 # Logs
 logs
 *.log
+
+
+packages/simplify-playground/

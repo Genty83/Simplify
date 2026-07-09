@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { tokens as defaultTokens } from "../../tokens/tokens";
-import { getTokens, setTokens, resetTokens } from "../../tokens/tokensEngine";
+import { tokens as defaultTokens } from "../tokens";
+import { getTokens, setTokens, resetTokens } from "../tokensEngine";
 
 describe("tokensEngine", () => {
   beforeEach(() => {
