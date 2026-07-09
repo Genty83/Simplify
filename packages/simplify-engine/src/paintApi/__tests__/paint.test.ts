@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { paint, isPaint } from "../../color";
-import { mc } from "../../color";
+import { paint, isPaint } from "../../paintApi";
+import { mc } from "../../paintApi";
 
 describe("paint()", () => {
   it("wraps a ModeColor token in a PaintValue", () => {

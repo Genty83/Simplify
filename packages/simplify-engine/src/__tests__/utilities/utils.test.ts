@@ -77,7 +77,7 @@ import {
 } from "../../services";
 
 import { normalize } from "../../core";
-import { isPaint, resolvePaint } from "../../color";
+import { isPaint, resolvePaint } from "../../paintApi";
 
 // ---------------------------------------------------------------------------
 // resolveValue

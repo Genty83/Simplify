@@ -138,14 +138,14 @@ function normalizeRule(rule: AtomicRule) {
  * @returns The tuple representing the rule's structural ordering dimensions.
  */
 function ruleSortTuple(rule: AtomicRule) {
-  const f = normalizeRule(rule);
+  const normailized = normalizeRule(rule);
 
   return [
-    f.priority,
-    f.namespace,
-    f.property,
-    f.value,
-    f.breakpoint,
+    normailized.priority,
+    normailized.namespace,
+    normailized.property,
+    normailized.value,
+    normailized.breakpoint,
   ] as const;
 }
 

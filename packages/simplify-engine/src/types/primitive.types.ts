@@ -18,7 +18,7 @@
  * This file is purely declarative and safe for static analysis.
  ***************************************************************************** */
 
-import type { PaintValue } from "../color";
+import type { PaintValue } from "../paintApi";
 import type { AnyBreakpoint } from "./breakpoints.types";
 import type { StateWrapper } from "./states.types";
 

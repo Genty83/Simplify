@@ -231,9 +231,7 @@ export function expandStateValue<T>(
   raw: StateValue<T> | StateWrapper<T>,
   activeStates: readonly StateKey[],
 ): Array<[StateKey, PrimitiveValue<T>]>{
-  if (isStateful<T>(raw)) {
-    return expandWrapped(raw.value, activeStates);
-  }
+  if (isStateful<T>(raw)) return expandWrapped(raw.value, activeStates);
 
   return expandWrapped(raw as StateValue<T>, activeStates);
 }
@@ -256,13 +254,9 @@ export function autoStates(
   value: unknown,
   activeStates: readonly StateKey[],
 ): unknown {
-  if (Array.isArray(value)) {
-    return states(tupleToStates(value, activeStates));
-  }
+  if (Array.isArray(value)) return states(tupleToStates(value, activeStates));
 
-  if (isRawStateObject(value)) {
-    return states(value);
-  }
+  if (isRawStateObject(value)) return states(value);
 
   return value;
 }

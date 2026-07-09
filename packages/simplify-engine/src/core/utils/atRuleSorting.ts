@@ -23,8 +23,8 @@
  * - Safe for SSR, workers, and edge runtimes
  ******************************************************************************/
 
-const BASE_AT_RULE = "base";
-const CONTAINER_AT_RULE = "@container";
+const BASE_AT_RULE = "base" as const;
+const CONTAINER_AT_RULE = "@container" as const;
 
 /* ============================================================================
  * Min-width extraction
@@ -84,25 +84,16 @@ export function compareAtRules(a: string, b: string): number {
   const bIsContainer = b.startsWith(CONTAINER_AT_RULE);
 
   // 2. Container queries before media queries
-  if (aIsContainer !== bIsContainer) {
-    return aIsContainer ? -1 : 1;
-  }
+  if (aIsContainer !== bIsContainer) return aIsContainer ? -1 : 1;
 
   // 3. Container queries: lexicographic ordering
-  if (aIsContainer && bIsContainer) {
-    return a.localeCompare(b);
-  }
+  if (aIsContainer) return a.localeCompare(b);
 
   // 4. Media queries: sort by min-width ascending
-  const minA = extractMinWidth(a);
-  const minB = extractMinWidth(b);
+  const widthDelta   = extractMinWidth(a) - extractMinWidth(b);
+  if (widthDelta  !== 0) return widthDelta ;
 
-  if (minA !== minB) {
-    return minA - minB;
-  }
-
-  // 5. Fallback: lexicographic ordering
-  return a.localeCompare(b);
+  return a.localeCompare(b); // 5. Fallback
 }
 
 /* ============================================================================

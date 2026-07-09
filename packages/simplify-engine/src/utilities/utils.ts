@@ -48,7 +48,7 @@ import {
 } from "../services";
 
 import { parseContainerQuery } from "../services";
-import { isPaint, resolvePaint } from "../color";
+import { isPaint, resolvePaint } from "../paintApi";
 import { normalize } from "../core";
 
 // ============================================================================

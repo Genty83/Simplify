@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { suiColor } from "../../color";
-import { mc } from "../../color";
+import { suiColor } from "../../paintApi";
+import { mc } from "../../paintApi";
 
 // Utility: recursively walk all values in the palette
 function walk(obj: unknown, fn: (value: unknown, path: string) => void, path = "") {

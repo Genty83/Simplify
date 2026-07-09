@@ -143,7 +143,7 @@ export function parseContainerQuery(
  * @returns A wrapped @container rule.
  */
 export function wrapInContainer(condition: string, css: string): string {
-  return `@container ${condition} { ${css} }`;
+  return `${PREFIX_CONTAINER} ${condition} { ${css} }`;
 }
 
 /* ============================================================================

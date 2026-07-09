@@ -44,10 +44,8 @@ const JOIN_AND = " and ";
 export function normalizePx(
   value: number | string,
 ): string {
-  if (typeof value === "number") {
-    return `${value}px`;
-  }
-
+  if (typeof value === "number") return `${value}px`;
+  
   return /^\d+$/.test(value)
     ? `${value}px`
     : value;
