@@ -51,7 +51,7 @@ vi.mock("../../services", async (importOriginal) => {
   };
 });
 
-vi.mock("../../color", async (importOriginal) => {
+vi.mock("../../paintApi", async (importOriginal) => {
   const actual = await importOriginal() as Record<string, any>;
   return {
     ...actual,
