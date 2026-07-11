@@ -43,5 +43,10 @@ Thumbs.db
 logs
 *.log
 
+# TODO: App.tsx is temporarily ignored via `git update-index --assume-unchanged`.
+# When building the playground, run:
+#   git update-index --no-assume-unchanged packages/simplify-playground/src/App.tsx
+# And remove this ignore rule.
 
-packages/simplify-playground/
+packages/simplify-playground/src/
+
