@@ -3,8 +3,8 @@ import {
   setThemeMode,
   getThemeMode,
   resolvePaint,
-} from "../../paintApi";
-import { mc } from "../../paintApi";
+} from "..";
+import { mc } from "..";
 
 describe("paintEngine", () => {
   beforeEach(() => {

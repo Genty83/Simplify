@@ -20,7 +20,7 @@
  ***************************************************************************** */
 
 import type { StateKey, ContainerSizeMap } from "../types"
-import { ariaStateMap } from "../ariaApi"
+import { ariaStateMap } from "../api/ariaApi"
 
 // ============================================================================
 // BREAKPOINT MAP (Viewport)

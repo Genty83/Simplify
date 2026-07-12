@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mc } from "../../paintApi";
+import { mc } from "..";
 
 describe("mc()", () => {
   it("creates a fully rectangular ModeColor object", () => {

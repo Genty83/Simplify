@@ -51,7 +51,7 @@ vi.mock("../../services", async (importOriginal) => {
   };
 });
 
-vi.mock("../../paintApi", async (importOriginal) => {
+vi.mock("../../api/paintApi", async (importOriginal) => {
   const actual = await importOriginal() as Record<string, any>;
   return {
     ...actual,
@@ -77,7 +77,7 @@ import {
 } from "../../services";
 
 import { normalize } from "../../core";
-import { isPaint, resolvePaint } from "../../paintApi";
+import { isPaint, resolvePaint } from "../../api/paintApi";
 
 // ---------------------------------------------------------------------------
 // resolveValue
